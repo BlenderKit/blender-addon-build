@@ -4,52 +4,78 @@ author: 'BlenderKit'
 inputs:
   name:
     description: 'Name of the add-on. Used for the name of the build.'
-    required: true
+    default: ''
   name-suffix:
     description: 'Name suffix. None (name.zip), commit hash (name-abc123.zip), PR number with datetime (name-PR123-date_time.zip).'
-    default: 'none'
     choices: [ 'none', 'commit-hash', 'PR-time']
+    default: 'none'
   build-command:
     description: 'Command to build the add-on.'
     default: ''
   build-location:
     description: 'Path to directory, which will be zipped.'
     default: './'
-    required: true
   exclude-files:
-    description: 'List of files to exclude from the build. Wildcards are supported.'
+    description: 'List of file paths (relative to build-location) to exclude from the build. Use semicolon as separator e.g. "file1;dir/file2;dir2/file3".'
     default: ''
 runs:
   using: "composite"
   steps:
-    - uses: actions/checkout@v3
-    - run: python dev.py build
-      shell: bash
-    - id: get-date
+    - uses: actions/checkout@v3    
+    
+    - name: get-date
       run: echo "date=$(date +'%Y-%m-%d--%H-%M-%S')" >> $GITHUB_ENV
       shell: bash
-    
-    - name: Store the build (suffix none)
+
+    # PREPARE NAME
+    - name: Use name from input
+      if: ${{ inputs.name != '' }}
+      run: echo "artifact_name=${{ inputs.name }}" >> $GITHUB_ENV
+      shell: bash
+    - name: Use repository name
+      if: ${{ inputs.name == '' }}  
+      run: echo "artifact_name=${{ github.event.repository.name }}" >> $GITHUB_ENV
+      shell: bash
+
+    # PREPARE NAME SUFFIXES
+    - name: Prepare artifact name without suffix
       if: ${{ inputs.name-suffix == 'none' }}
-      uses: actions/upload-artifact@v3
-      with:
-        name: ${{ inputs.name }}
-        path: |
-          {{ inputs.build-location }}
-          !{{ inputs.exclude-files }}
-    - name: Store the build (suffix commit-hash)
+      run: echo "artifact_name=${{ env.artifact_name }}" >> $GITHUB_ENV
+      shell: bash
+    - name: Prepare artifact name with PR-time suffix
+      if: ${{ inputs.name-suffix == 'PR-time' }}
+      run: echo "artifact_name=${{ env.artifact_name }}-PR${{ github.event.number }}-${{ env.date }}" >> $GITHUB_ENV
+      shell: bash
+    - name: Prepare artifact name with commit-hash suffix
       if: ${{ inputs.name-suffix == 'commit-hash' }}
+      run: echo "artifact_name=${{ env.artifact_name }}-${{ github.sha }}" >> $GITHUB_ENV
+      shell: bash
+
+    # BUILD IF PROVIDED
+    - name: Build the add-on
+      if: ${{ inputs.build-command != '' }}
+      run: |
+        ${{ inputs.build-command }}
+      shell: bash
+
+    - name: LS
+      run: ls -la
+      shell: bash
+
+    - name: Remove excluded files
+      run: |
+        for file in ${{ inputs.exclude-files }}; do
+          rm -rf ${{ inputs.build-location }}/$file
+        done
+      shell: bash
+
+    - name: LS
+      run: ls -la
+      shell: bash
+
+    # STORE THE BUILD
+    - name: Store the build
       uses: actions/upload-artifact@v3
       with:
-        name: ${{ inputs.name }}-${{ github.sha }}
-        path: |
-          {{ inputs.build-location }}
-          !{{ inputs.exclude-files }}
-    - name: Store the build (suffix pr-number)
-      if: ${{ inputs.name-suffix == 'pr-number' }}
-      uses: actions/upload-artifact@v3
-      with:
-        name: ${{ inputs.name }}-PR${{ github.event.pull_request.number }}-${{ steps.get-date.outputs.date }}
-        path: |
-          {{ inputs.build-location }}
-          !{{ inputs.exclude-files }}
+        name: ${{ env.artifact_name }}
+        path: ${{ inputs.build-location }}
