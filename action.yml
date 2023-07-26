@@ -1,0 +1,55 @@
+name: 'Blender Addon Build'
+description: 'Build the Blender add-on and store the build.'
+author: 'BlenderKit'
+inputs:
+  name:
+    description: 'Name of the add-on. Used for the name of the build.'
+    required: true
+  name-suffix:
+    description: 'Name suffix. None (name.zip), commit hash (name-abc123.zip), PR number with datetime (name-PR123-date_time.zip).'
+    default: 'none'
+    choices: [ 'none', 'commit-hash', 'PR-time']
+  build-command:
+    description: 'Command to build the add-on.'
+    default: ''
+  build-location:
+    description: 'Path to directory, which will be zipped.'
+    default: './'
+    required: true
+  exclude-files:
+    description: 'List of files to exclude from the build. Wildcards are supported.'
+    default: ''
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v3
+    - run: python dev.py build
+      shell: bash
+    - id: get-date
+      run: echo "date=$(date +'%Y-%m-%d--%H-%M-%S')" >> $GITHUB_ENV
+      shell: bash
+    
+    - name: Store the build (suffix none)
+      if: ${{ inputs.name-suffix == 'none' }}
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ inputs.name }}
+        path: |
+          {{ inputs.build-location }}
+          !{{ inputs.exclude-files }}
+    - name: Store the build (suffix commit-hash)
+      if: ${{ inputs.name-suffix == 'commit-hash' }}
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ inputs.name }}-${{ github.sha }}
+        path: |
+          {{ inputs.build-location }}
+          !{{ inputs.exclude-files }}
+    - name: Store the build (suffix pr-number)
+      if: ${{ inputs.name-suffix == 'pr-number' }}
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ inputs.name }}-PR${{ github.event.pull_request.number }}-${{ steps.get-date.outputs.date }}
+        path: |
+          {{ inputs.build-location }}
+          !{{ inputs.exclude-files }}
