@@ -64,9 +64,9 @@ runs:
 
     - name: Remove excluded files
       run: |
-        for file in ${{ inputs.exclude-files }}; do
-          rm -rf ${{ inputs.build-location }}/$file
-        done
+        IFS=';' read -ra FILE_ARRAY <<< "$files"
+        for file in "${FILE_ARRAY[@]}"; do
+        rm -rf .//$file
       shell: bash
 
     - name: LS
