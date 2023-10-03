@@ -15,6 +15,10 @@ inputs:
   build-location:
     description: 'Path to directory, which will be zipped.'
     default: './'
+  do-checkout:
+    decsription: 'Should the action checkout the repository?'
+    choices: [ 'true', 'false' ]
+    default: 'true'
   exclude-files:
     description: 'List of file paths (relative to build-location) to exclude from the build. Use semicolon as separator e.g. "file1;dir/file2;dir2/file3".'
     default: ''
