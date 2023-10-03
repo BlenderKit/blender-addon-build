@@ -21,7 +21,7 @@ inputs:
     default: 'true'
   exclude-files:
     description: 'List of file paths (relative to build-location) to exclude from the build. Use semicolon as separator e.g. "file1;dir/file2;dir2/file3".'
-    default: ''
+    default: '.git'
 runs:
   using: "composite"
   steps:
