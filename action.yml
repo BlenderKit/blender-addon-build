@@ -64,7 +64,7 @@ runs:
 
     - name: Remove excluded files
       run: |
-        IFS=';' read -ra FILE_ARRAY <<< "$files"
+        IFS=';' read -ra FILE_ARRAY <<< "${{ inputs.exclude-files }}"
         for file in "${FILE_ARRAY[@]}"; do
           rm -rf .//$file
         done
