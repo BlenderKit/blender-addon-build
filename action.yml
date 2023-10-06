@@ -1,8 +1,9 @@
 name: 'Blender Addon Build'
 description: 'Action to automatically build the Blender add-on and store the resulting .zip artifact.'
 author: 'Andreas Gajdosik, BlenderKit'
-icon: 'box'
-color: 'orange'
+branding:
+  icon: 'box'
+  color: 'orange'
 inputs:
   name:
     description: 'Name of the add-on. Used for the name of the build.'
