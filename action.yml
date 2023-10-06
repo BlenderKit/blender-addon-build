@@ -1,5 +1,5 @@
 name: 'Blender Addon Build'
-description: 'Build the Blender add-on and store the build.'
+description: 'Action to automatically build the Blender add-on and store the resulting .zip artifact.'
 author: 'BlenderKit'
 inputs:
   name:
@@ -25,8 +25,9 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - uses: actions/checkout@v3    
-    
+    - name: Checkout Repository
+      if: ${{ inputs.do-checkout == 'true' }}
+      uses: actions/checkout@v3
     - name: get-date
       run: echo "date=$(date +'%Y-%m-%d--%H-%M-%S')" >> $GITHUB_ENV
       shell: bash
@@ -62,20 +63,13 @@ runs:
         ${{ inputs.build-command }}
       shell: bash
 
-    - name: LS
-      run: ls -la
-      shell: bash
-
+    # REMOVE EXCLUDED FILES
     - name: Remove excluded files
       run: |
         IFS=';' read -ra FILE_ARRAY <<< "${{ inputs.exclude-files }}"
         for file in "${FILE_ARRAY[@]}"; do
           rm -rf .//$file
         done
-      shell: bash
-
-    - name: LS
-      run: ls -la
       shell: bash
 
     # STORE THE BUILD
