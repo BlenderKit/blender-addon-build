@@ -6,7 +6,7 @@ branding:
   color: 'orange'
 inputs:
   name:
-    description: 'Name of the add-on. Used for the name of the build.'
+    description: 'Name of the add-on. Used for the name of the build. If left empty, repository name will be used automatically.'
     default: ''
   name-suffix:
     description: 'Name suffix. None (name.zip), commit hash (name-abc123.zip), PR number with datetime (name-PR123-date_time.zip).'
