@@ -4,7 +4,7 @@ This GitHub action automates the build process for Blender add-ons, producing a 
 
 ## Author
 
-This action was created by Andreas Gajdosik and [BlenderKit](https://github.com/BlenderKit).
+This action was created by Andreas Gajdosik and [Blendkit](https://github.com/BlenderKit).
 
 ## Description
 
